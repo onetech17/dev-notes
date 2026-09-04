@@ -110,7 +110,6 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "01-LeetCode/2026-09-01-每日一题-int溢出.md",
                 "followCursor": true,
                 "showSearch": false,
                 "searchQuery": ""
@@ -136,6 +135,11 @@
   },
   "active": "67232c5022bfa53d",
   "lastOpenFiles": [
+    "03-环境配置/2026-09-03_规范_后端日志规范.md",
+    "03-环境配置/2026-09-04_github_proxy-config-guide.md",
+    "03-环境配置/2026-09-04-github-proxy-config-guide.md",
+    "03-环境配置/2026-09-04-代理-github代理配置proxy-config-guide.md",
+    "03-环境配置/proxy-config-guide.md",
     "02-概念理解/2026-09-03-Linux-Electron应用.md",
     "02-概念理解/2026-09-02-Linux-AppImage介绍.md",
     "03-环境配置/2026-09-03-规范-后端日志规范.md",
