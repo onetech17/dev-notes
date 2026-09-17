@@ -93,7 +93,7 @@ dev-notes/
 
 每篇笔记头部写 `标签`，小写，逗号分隔，便于 grep：
 
-- 技术栈标签：`scala`, `sbt`, `sql`, `postgres`, `docker`, `podman`, `wsl`, `idea`, `jdk`, `git`
+- 技术栈标签：`scala`, `sbt`, `sql`, `postgres`, `docker`, `podman`, `wsl`, `windows`, `idea`, `jdk`, `git`
 - 类型标签：`排错`, `概念`, `选型`, `配置`, `设计`
 - 状态标签（可选）：`待验证`, `已解决`, `有坑`
 
@@ -125,6 +125,7 @@ grep -rl "待验证" --include="*.md" .
 
 | 日期 | 标题 | 标签 | 文件 |
 |---|---|---|---|
+| 2026-09-12 | Windows 11 目录结构与快捷指令 | windows, 概念, 配置 | [链接](02-概念理解/2026-09-12-windows-目录结构与快捷指令.md) |
 | 2026-09-03 | Linux Electron 应用与双进程模型 | linux, electron, 概念 | [链接](02-概念理解/2026-09-03-Linux-Electron应用.md) |
 | 2026-09-02 | Linux AppImage 便携包介绍 | linux, appimage, 概念 | [链接](02-概念理解/2026-09-02-Linux-AppImage介绍.md) |
 
