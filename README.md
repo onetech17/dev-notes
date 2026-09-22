@@ -32,6 +32,7 @@ dev-notes/
 ├── 05-需求与设计/         # 需求分析、接口/系统设计
 ├── templates/             # 笔记模板
 │   └── 笔记模板.md
+├── 周复盘/                # 周复盘笔记（按 ISO 周命名，如 2026-W37.md）
 └── archive/               # 过时内容归档（不删除）
 ```
 
@@ -50,12 +51,12 @@ dev-notes/
 固定格式：`YYYY-MM-DD-技术栈-关键词.md`
 
 - 日期：问题解决当天
-- 技术栈：scala / sbt / sql / postgres / docker / k8s / idea 等
+- 技术栈：小写，如 linux / git / java / node / windows / logging
 - 关键词：简短描述，用中文或英文均可，多个词用连字符 `-` 连接
 
 示例：
-- `2026-08-21-sbt-IDEA依赖同步后标红.md`
-- `2026-08-26-postgres-SQL条件聚合与同层别名引用.md`
+- `2026-09-01-java-每日一题-int溢出.md`
+- `2026-09-03-logging-后端日志规范.md`
 
 ---
 
@@ -93,7 +94,7 @@ dev-notes/
 
 每篇笔记头部写 `标签`，小写，逗号分隔，便于 grep：
 
-- 技术栈标签：`scala`, `sbt`, `sql`, `postgres`, `docker`, `podman`, `wsl`, `windows`, `linux`, `node`, `idea`, `jdk`, `git`
+- 技术栈标签：`linux`, `windows`, `git`, `java`, `leetcode`, `node`, `npm`, `npx`, `electron`, `appimage`, `tar`, `zip`, `proxy`, `socks5`, `logging`, `scala`, `sbt`, `sql`, `postgres`, `docker`, `k8s`, `idea`, `jdk`
 - 类型标签：`排错`, `概念`, `选型`, `配置`, `设计`
 - 状态标签（可选）：`待验证`, `已解决`, `有坑`
 
@@ -118,8 +119,6 @@ grep -rl "待验证" --include="*.md" .
 | 日期 | 标题 | 标签 | 文件 |
 |---|---|---|---|
 | 2026-09-01 | 每日一题·链表临界点 int 溢出漏判 | java, leetcode, 排错 | [链接](01-报错排查/2026-09-01-java-每日一题-int溢出.md) |
-| 2026-08-26 | SQL 条件聚合与同层别名引用问题 | sql, postgres, 排错 | [链接](01-报错排查/2026-08-26-postgres-SQL条件聚合与同层别名引用.md) |
-| 2026-08-21 | sbt 项目 IDEA 同步后标红、update 后恢复 | scala, sbt, idea, 排错 | [链接](01-报错排查/2026-08-21-sbt-IDEA依赖同步后标红.md) |
 
 ### 02-概念理解
 
@@ -149,6 +148,14 @@ grep -rl "待验证" --include="*.md" .
 | 日期 | 标题 | 标签 | 文件 |
 |---|---|---|---|
 | 2026-09-03 | 后端日志规范（级别/格式/trace_id/脱敏） | logging, 设计 | [链接](05-需求与设计/2026-09-03-logging-后端日志规范.md) |
+
+### 周复盘
+
+| 周 | 时间范围 | 新增笔记数 | 文件 |
+|---|---|---|---|
+| 2026-W38 | 09-14 ~ 09-20 | 1 | [链接](周复盘/2026-W38.md) |
+| 2026-W37 | 09-07 ~ 09-13 | 3 | [链接](周复盘/2026-W37.md) |
+| 2026-W36 | 08-31 ~ 09-06 | 5 | [链接](周复盘/2026-W36.md) |
 
 ### archive 归档
 
