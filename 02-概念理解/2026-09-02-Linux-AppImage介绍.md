@@ -51,12 +51,12 @@ chmod +x application.AppImage
 
 ## 常用 AppImage 工具
 
-以下是经常使用 AppImage 发布的应用：
-- **开发工具**：VS Code、IntelliJ IDEA、Postman
-- **浏览器**：Firefox、Chrome、Brave
-- **办公软件**：LibreOffice、KDevelop
-- **图像处理**：GIMP、Krita、Inkscape
-- **其他**：OBS Studio、Audacity、Arduino IDE
+以下应用官方提供 AppImage 下载：
+- **图像处理**：Krita
+- **视频剪辑**：OpenShot
+- **实用工具**：Bitwarden、Balena Etcher
+
+> 注意：VS Code、IntelliJ IDEA、Postman、Firefox 等热门应用**官方并不提供 AppImage**，网上流传的多为社区第三方打包，使用前需自行验证来源。
 
 ## AppImage 辅助工具
 
@@ -111,5 +111,3 @@ sudo apt install libfuse2
 ## 总结
 
 **AppImage** 是一种 "绿色版" 的 Linux 软件分发格式，最大的优势是 **零安装、跨发行版、可便携使用**，特别适合需要在多种 Linux 环境使用的应用。
-
-## 😀 默认助手 | Dept1-MiniMax-M3 | 7d907ed9-1079-4324-81bc-7c541764f306

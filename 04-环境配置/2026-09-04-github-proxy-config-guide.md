@@ -1,6 +1,8 @@
 # 企业代理环境配置与故障排查
 
-> 本文档整理了两次关于 ZTE 公司代理环境的诊断与解决方案，涵盖 `git push --mirror` 失败的根因分析、代理配置项正确性验证、以及可落地的修复方案。
+> 本文档整理了两次关于公司代理环境的诊断与解决方案，涵盖 `git push --mirror` 失败的根因分析、代理配置项正确性验证、以及可落地的修复方案。
+>
+> 注：文中代理域名、内网域名与仓库地址均已脱敏为占位符，替换为真实值即可复用。
 
 ---
 
@@ -27,10 +29,10 @@
 
 - **DNS 解析**：GitHub 域名可解析（指向真实公网 IP，如 `20.205.243.166`）
 - **直接出网**：HTTP/HTTPS/SSH 直连 GitHub 均失败
-- **公司代理**：仅允许通过 `proxysz.zte.com.cn` 代理出网
+- **公司代理**：仅允许通过 `proxy.corp.example.com` 代理出网
   - 80 端口：HTTP 代理（仅支持 HTTP/FTP 流量，不支持 HTTPS CONNECT 隧道）
   - 1080 端口：SOCKS5 代理（支持任意 TCP 流量，含 HTTPS）
-- **内网不走代理**：通过 `no_proxy` 配置了 ZTE 内网域名与私网地址段
+- **内网不走代理**：通过 `no_proxy` 配置了公司内网域名与私网地址段
 
 ---
 
@@ -41,7 +43,7 @@
 执行 `git push --mirror origin` 时报错：
 
 ```text
-fatal: 无法访问 'https://github.com/onetech17/dev-notes.git/'：Proxy CONNECT aborted
+fatal: 无法访问 'https://github.com/<你的用户名>/dev-notes.git/'：Proxy CONNECT aborted
 ```
 
 ### 诊断过程
@@ -62,8 +64,8 @@ echo "https_proxy=$https_proxy"
 ```text
 HTTP_PROXY=
 HTTPS_PROXY=
-http_proxy=http://proxysz.zte.com.cn:80
-https_proxy=http://proxysz.zte.com.cn:80
+http_proxy=http://proxy.corp.example.com:80
+https_proxy=http://proxy.corp.example.com:80
 ```
 
 #### 2. 直接连通性测试
@@ -71,12 +73,12 @@ https_proxy=http://proxysz.zte.com.cn:80
 | 测试项 | 命令 | 结果 |
 |---|---|---|
 | 直连 GitHub HTTPS | `curl https://github.com` | `000`（超时/失败） |
-| 走 HTTP 代理访问 HTTPS | `curl -x http://proxysz.zte.com.cn:80 https://github.com` | `000`（CONNECT 被中止） |
+| 走 HTTP 代理访问 HTTPS | `curl -x http://proxy.corp.example.com:80 https://github.com` | `000`（CONNECT 被中止） |
 
 #### 3. 代理服务本身的可用性
 
 ```bash
-curl -v --max-time 10 -x "http://proxysz.zte.com.cn:80" http://github.com
+curl -v --max-time 10 -x "http://proxy.corp.example.com:80" http://github.com
 ```
 
 返回 `301 Moved Permanently` → 代理服务器本身正常。
@@ -84,8 +86,8 @@ curl -v --max-time 10 -x "http://proxysz.zte.com.cn:80" http://github.com
 #### 4. HTTPS CONNECT 隧道测试
 
 ```bash
-curl -v --max-time 15 -x "http://proxysz.zte.com.cn:80" \
-    https://github.com/onetech17/dev-notes.git/info/refs?service=git-upload-pack
+curl -v --max-time 15 -x "http://proxy.corp.example.com:80" \
+    https://github.com/<你的用户名>/dev-notes.git/info/refs?service=git-upload-pack
 ```
 
 关键日志：
@@ -106,18 +108,18 @@ nc -zv -w 5 github.com 22
 
 # SOCKS5 代理 (1080 端口)
 curl -s -o /dev/null -w "%{http_code}\n" --max-time 10 \
-    -x "socks5://proxysz.zte.com.cn:1080" https://github.com
+    -x "socks5://proxy.corp.example.com:1080" https://github.com
 # → 200（成功）
 ```
 
 ### 根本原因
 
 ```text
-报错信息：fatal: 无法访问 'https://github.com/onetech17/dev-notes.git/'：Proxy CONNECT aborted
+报错信息：fatal: 无法访问 'https://github.com/<你的用户名>/dev-notes.git/'：Proxy CONNECT aborted
 
 根本原因：
-  1. 网络只能通过 SOCKS5 代理 (proxysz.zte.com.cn:1080) 访问 GitHub
-  2. HTTP 代理 (proxysz.zte.com.cn:80) 不支持 HTTPS CONNECT 隧道
+  1. 网络只能通过 SOCKS5 代理 (proxy.corp.example.com:1080) 访问 GitHub
+  2. HTTP 代理 (proxy.corp.example.com:80) 不支持 HTTPS CONNECT 隧道
   3. SSH 22 端口被防火墙屏蔽
   4. Git 默认走环境变量里的 HTTP 代理 → CONNECT 被中止 → 失败
 ```
@@ -127,32 +129,32 @@ curl -s -o /dev/null -w "%{http_code}\n" --max-time 10 \
 #### 方法 1：单次命令使用 SOCKS5 代理（最简单）
 
 ```bash
-git -c http.proxy=socks5://proxysz.zte.com.cn:1080 \
-    -c https.proxy=socks5://proxysz.zte.com.cn:1080 \
+git -c http.proxy=socks5://proxy.corp.example.com:1080 \
+    -c https.proxy=socks5://proxy.corp.example.com:1080 \
     push --mirror origin
 ```
 
 #### 方法 2：Git 全局代理（永久生效）
 
 ```bash
-git config --global http.proxy socks5://proxysz.zte.com.cn:1080
-git config --global https.proxy socks5://proxysz.zte.com.cn:1080
+git config --global http.proxy socks5://proxy.corp.example.com:1080
+git config --global https.proxy socks5://proxy.corp.example.com:1080
 # 之后直接 git push --mirror origin
 ```
 
 #### 方法 3：环境变量（针对单次 shell 会话）
 
 ```bash
-export ALL_PROXY=socks5://proxysz.zte.com.cn:1080
+export ALL_PROXY=socks5://proxy.corp.example.com:1080
 git push --mirror origin
 ```
 
 #### 验证方案有效
 
 ```bash
-GIT_CURL_VERBOSE=1 git -c http.proxy=socks5://proxysz.zte.com.cn:1080 \
-    -c https.proxy=socks5://proxysz.zte.com.cn:1080 \
-    ls-remote https://github.com/onetech17/dev-notes.git
+GIT_CURL_VERBOSE=1 git -c http.proxy=socks5://proxy.corp.example.com:1080 \
+    -c https.proxy=socks5://proxy.corp.example.com:1080 \
+    ls-remote https://github.com/<你的用户名>/dev-notes.git
 ```
 
 输出包含：
@@ -173,10 +175,10 @@ GIT_CURL_VERBOSE=1 git -c http.proxy=socks5://proxysz.zte.com.cn:1080 \
 
 | 配置项 | 值 |
 |---|---|
-| HTTP 代理 | `http://proxysz.zte.com.cn` 端口 `80` |
-| HTTPS 代理 | `http://proxysz.zte.com.cn` 端口 `80` |
-| FTP 代理 | `http://proxysz.zte.com.cn` 端口 `80` |
-| SOCKS 代理 | `socks5://proxysz.zte.com.cn` 端口 `1080` |
+| HTTP 代理 | `http://proxy.corp.example.com` 端口 `80` |
+| HTTPS 代理 | `http://proxy.corp.example.com` 端口 `80` |
+| FTP 代理 | `http://proxy.corp.example.com` 端口 `80` |
+| SOCKS 代理 | `socks5://proxy.corp.example.com` 端口 `1080` |
 
 ### 逐项验证结果
 
@@ -213,8 +215,8 @@ GIT_CURL_VERBOSE=1 git -c http.proxy=socks5://proxysz.zte.com.cn:1080 \
 ```text
 代理                    协议          端口    HTTP    HTTPS   FTP
 ─────────────────────────────────────────────────────────────
-proxysz.zte.com.cn     http://        80      ✅      ❌     ✅
-proxysz.zte.com.cn     socks5://    1080      ✅      ✅     ✅
+proxy.corp.example.com     http://        80      ✅      ❌     ✅
+proxy.corp.example.com     socks5://    1080      ✅      ✅     ✅
 ```
 
 ### 关键发现
@@ -222,7 +224,7 @@ proxysz.zte.com.cn     socks5://    1080      ✅      ✅     ✅
 #### 问题 1：「HTTPS 代理」配置的歧义
 
 ```text
-你写的：HTTPS 代理  http://proxysz.zte.com.cn  端口 80
+你写的：HTTPS 代理  http://proxy.corp.example.com  端口 80
 实际测：HTTP 代理（端口 80）不能处理 HTTPS CONNECT 隧道
 ```
 
@@ -237,8 +239,8 @@ proxysz.zte.com.cn     socks5://    1080      ✅      ✅     ✅
 
 ```text
 当前环境：
-  http_proxy    = http://proxysz.zte.com.cn:80    ✓ 存在
-  https_proxy   = http://proxysz.zte.com.cn:80    ✓ 存在（但对 HTTPS 无效）
+  http_proxy    = http://proxy.corp.example.com:80    ✓ 存在
+  https_proxy   = http://proxy.corp.example.com:80    ✓ 存在（但对 HTTPS 无效）
   SOCKS_PROXY   = (未设置)                         ❌ 缺失
 ```
 
@@ -261,12 +263,12 @@ GUI 网络设置中的代理配置为空。
 ### 方案 A：环境变量修正（立即生效，仅当前终端）
 
 ```bash
-export http_proxy="http://proxysz.zte.com.cn:80"
-export https_proxy="socks5://proxysz.zte.com.cn:1080"   # ← 关键：用 SOCKS5
-export ftp_proxy="http://proxysz.zte.com.cn:80"
-export SOCKS_PROXY="socks5://proxysz.zte.com.cn:1080"
-export ALL_PROXY="socks5://proxysz.zte.com.cn:1080"
-export no_proxy="localhost,127.0.0.0/8,*.zte.com.cn,.zte.com.cn,zte.com.cn,10.*.*.*"
+export http_proxy="http://proxy.corp.example.com:80"
+export https_proxy="socks5://proxy.corp.example.com:1080"   # ← 关键：用 SOCKS5
+export ftp_proxy="http://proxy.corp.example.com:80"
+export SOCKS_PROXY="socks5://proxy.corp.example.com:1080"
+export ALL_PROXY="socks5://proxy.corp.example.com:1080"
+export no_proxy="localhost,127.0.0.0/8,*.corp.example.com,.corp.example.com,corp.example.com,10.*.*.*"
 ```
 
 ### 方案 B：永久写入 ~/.bashrc（推荐）
@@ -274,13 +276,13 @@ export no_proxy="localhost,127.0.0.0/8,*.zte.com.cn,.zte.com.cn,zte.com.cn,10.*.
 ```bash
 cat >> ~/.bashrc << 'EOF'
 
-# ===== ZTE 代理配置 =====
-export http_proxy="http://proxysz.zte.com.cn:80"
-export https_proxy="socks5://proxysz.zte.com.cn:1080"
-export ftp_proxy="http://proxysz.zte.com.cn:80"
-export SOCKS_PROXY="socks5://proxysz.zte.com.cn:1080"
-export ALL_PROXY="socks5://proxysz.zte.com.cn:1080"
-export no_proxy="localhost,127.0.0.0/8,*.zte.com.cn,.zte.com.cn,zte.com.cn,10.*.*.*,gerrit.zte.com.cn,gitlab.zte.com.cn"
+# ===== 公司代理配置 =====
+export http_proxy="http://proxy.corp.example.com:80"
+export https_proxy="socks5://proxy.corp.example.com:1080"
+export ftp_proxy="http://proxy.corp.example.com:80"
+export SOCKS_PROXY="socks5://proxy.corp.example.com:1080"
+export ALL_PROXY="socks5://proxy.corp.example.com:1080"
+export no_proxy="localhost,127.0.0.0/8,*.corp.example.com,.corp.example.com,corp.example.com,10.*.*.*,git.internal.example.com"
 EOF
 
 source ~/.bashrc
@@ -289,8 +291,8 @@ source ~/.bashrc
 ### 方案 C：Git 专用配置
 
 ```bash
-git config --global http.proxy socks5://proxysz.zte.com.cn:1080
-git config --global https.proxy socks5://proxysz.zte.com.cn:1080
+git config --global http.proxy socks5://proxy.corp.example.com:1080
+git config --global https.proxy socks5://proxy.corp.example.com:1080
 ```
 
 ### 方案 D：清理旧的 HTTP 代理配置（如果之前设错）
@@ -298,8 +300,8 @@ git config --global https.proxy socks5://proxysz.zte.com.cn:1080
 ```bash
 git config --global --unset http.proxy
 git config --global --unset https.proxy
-git config --global http.proxy socks5://proxysz.zte.com.cn:1080
-git config --global https.proxy socks5://proxysz.zte.com.cn:1080
+git config --global http.proxy socks5://proxy.corp.example.com:1080
+git config --global https.proxy socks5://proxy.corp.example.com:1080
 ```
 
 ---
@@ -311,15 +313,15 @@ git config --global https.proxy socks5://proxysz.zte.com.cn:1080
 ```bash
 # HTTP 代理测试 HTTP 流量
 curl -s -o /dev/null -w "%{http_code}\n" --max-time 10 \
-    -x "http://proxysz.zte.com.cn:80" http://httpbin.org/ip
+    -x "http://proxy.corp.example.com:80" http://httpbin.org/ip
 
 # HTTP 代理测试 HTTPS 流量（会失败）
 curl -s -o /dev/null -w "%{http_code}\n" --max-time 10 \
-    -x "http://proxysz.zte.com.cn:80" https://github.com
+    -x "http://proxy.corp.example.com:80" https://github.com
 
 # SOCKS5 代理测试 HTTPS 流量（会成功）
 curl -s -o /dev/null -w "%{http_code}\n" --max-time 10 \
-    -x "socks5://proxysz.zte.com.cn:1080" https://github.com
+    -x "socks5://proxy.corp.example.com:1080" https://github.com
 ```
 
 ### 查看当前代理配置
@@ -340,8 +342,8 @@ gsettings list-recursively org.gnome.system.proxy
 
 ```bash
 # 单次命令
-git -c http.proxy=socks5://proxysz.zte.com.cn:1080 \
-    -c https.proxy=socks5://proxysz.zte.com.cn:1080 \
+git -c http.proxy=socks5://proxy.corp.example.com:1080 \
+    -c https.proxy=socks5://proxy.corp.example.com:1080 \
     push --mirror origin
 
 # 全局配置后
@@ -351,7 +353,7 @@ git push --mirror origin
 ### 验证 HTTPS CONNECT 隧道是否被代理支持
 
 ```bash
-curl -v --max-time 15 -x "http://proxysz.zte.com.cn:80" \
+curl -v --max-time 15 -x "http://proxy.corp.example.com:80" \
     https://github.com 2>&1 | grep -E "CONNECT|aborted|HTTP/1.1"
 ```
 
@@ -361,4 +363,4 @@ curl -v --max-time 15 -x "http://proxysz.zte.com.cn:80" \
 
 ## 一句话总结
 
-> 在公司代理环境下访问 GitHub 等 HTTPS 站点，**HTTP 代理（80 端口）无法代理 HTTPS 流量**，必须使用 **SOCKS5 代理（1080 端口）**；配置时将 `http_proxy` 设为 `http://proxysz.zte.com.cn:80`，将 `https_proxy` 和 `ALL_PROXY` 设为 `socks5://proxysz.zte.com.cn:1080`。
+> 在公司代理环境下访问 GitHub 等 HTTPS 站点，**HTTP 代理（80 端口）无法代理 HTTPS 流量**，必须使用 **SOCKS5 代理（1080 端口）**；配置时将 `http_proxy` 设为 `http://proxy.corp.example.com:80`，将 `https_proxy` 和 `ALL_PROXY` 设为 `socks5://proxy.corp.example.com:1080`。
