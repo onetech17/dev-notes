@@ -1,5 +1,9 @@
 # Linux 系统中的 AppImage 包
 
+- 日期：2026-09-02
+- 标签：linux, appimage, 概念
+- 关联笔记：[Linux Electron 应用](2026-09-03-linux-Electron应用.md)、[Windows 目录结构与快捷指令](2026-09-12-windows-目录结构与快捷指令.md)
+
 ## 什么是 AppImage？
 
 **AppImage** 是一种 **便携式软件包格式**，它将应用程序及其所有依赖打包到一个独立的可执行文件中，用户无需安装即可在 Linux 系统上运行。

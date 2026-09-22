@@ -1,4 +1,9 @@
-### 什么是 Electron 应用
+# 什么是 Electron 应用
+
+- 日期：2026-09-03
+- 标签：linux, electron, 概念
+- 关联笔记：[Linux AppImage 介绍](2026-09-02-linux-AppImage介绍.md)、[Windows 目录结构与快捷指令](2026-09-12-windows-目录结构与快捷指令.md)
+
 Electron 是由 GitHub 发起、OpenJS 基金会维护的开源跨平台桌面应用开发框架。**基于 Electron 框架开发的桌面客户端程序，统称为 Electron 应用**。
 
 它的核心本质可以用公式概括：
