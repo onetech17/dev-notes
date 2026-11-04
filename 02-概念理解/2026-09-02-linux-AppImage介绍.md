@@ -58,7 +58,7 @@ chmod +x application.AppImage
 以下应用官方提供 AppImage 下载：
 - **图像处理**：Krita
 - **视频剪辑**：OpenShot
-- **实用工具**：Bitwarden、Balena Etcher
+- **实用工具**：Bitwarden、Balena Etcher（仅旧版 1.x 提供 AppImage，2.x 起官方已不再发布）
 
 > 注意：VS Code、IntelliJ IDEA、Postman、Firefox 等热门应用**官方并不提供 AppImage**，网上流传的多为社区第三方打包，使用前需自行验证来源。
 
@@ -68,12 +68,15 @@ chmod +x application.AppImage
 自动管理 AppImage 文件（集成到应用菜单、可执行权限设置）
 
 ### 2. AppImageUpdate
+独立的更新工具（并非 AppImage 内置参数），包含 Qt 图形界面 `AppImageUpdate` 和命令行工具 `appimageupdatetool`：
 ```bash
-# 更新 AppImage 应用
-./tool.AppImage --appimage-update
+# 命令行更新某个 AppImage（前提：该 AppImage 打包时嵌入了更新信息，如 zsync 地址）
+./appimageupdatetool-x86_64.AppImage ./application.AppImage
 ```
+> 注意：electron-builder 打包的 AppImage 使用自己的更新机制，不能用上述工具更新。
 
-### 3. AppImageExtract
+### 3. 解压查看内容
+`--appimage-extract` 是 AppImage 运行时内置参数，无需额外工具（独立的 AppImageExtract 工具仅用于老旧的 type 1 AppImage，已弃用）：
 ```bash
 # 解压 AppImage 文件查看内容
 ./tool.AppImage --appimage-extract
@@ -94,16 +97,16 @@ ls  # 查看应用文件结构
 
 1. **FUSE 库未安装**（较新系统常见）
 ```bash
-# Ubuntu/Debian
+# Ubuntu/Debian（Ubuntu 24.04 起包名改为 libfuse2t64）
 sudo apt install libfuse2
 
-# 如果提示缺少 libfuse，也可以不解压直接运行：
+# 如果无法安装 FUSE，可临时解压后运行（退出后自动清理）：
 ./application.AppImage --appimage-extract-and-run
 ```
 
-2. **磁盘空间不足**：AppImage 需要临时解压运行，占用空间较大
+2. **磁盘空间占用**：AppImage 自包含全部依赖，文件本身体积较大。正常运行时通过 FUSE 只读挂载镜像，并不会整体解压；只有使用 `--appimage-extract-and-run` 兜底时才会临时解压到 /tmp
 
-3. **桌面集成**：首次运行可以右键 → 集成到系统，或使用 `appimaged` 守护进程自动管理
+3. **桌面集成**：原生文件管理器没有"集成到系统"菜单，需安装 AppImageLauncher 后双击才会提示集成；也可使用 `appimaged` 守护进程自动管理（官方 appimaged 仓库已归档，目前推荐 AppImageLauncher）
 
 ## 创建 AppImage 的工具
 
